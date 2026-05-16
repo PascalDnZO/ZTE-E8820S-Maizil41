@@ -112,6 +112,11 @@ jobs:
         wget -q -O .config "${{ inputs.config_link }}"
         ./scripts/ext-toolchain.sh --toolchain /opt/toolchain --overwrite-config --config ${{ inputs.target_arch }}
         make defconfig
+        
+    - name: Debug via SSH (tmate)
+      uses: mxschmitt/action-tmate@v3
+      with:
+        limit-access-to-actor: false   
 
     - name: Download Packages
       working-directory: ./openwrt
@@ -146,6 +151,11 @@ jobs:
       run: |
         echo "release_tag=${{ inputs.repo_branch }}-$(date +'%Y.%m.%d-%H%M')" >> $GITHUB_OUTPUT
         echo "release_name=OpenWrt ZTE E8820S ${{ inputs.repo_branch }} $(date +'%Y.%m.%d')" >> $GITHUB_OUTPUT
+
+    - name: Debug via SSH (tmate)
+      uses: mxschmitt/action-tmate@v3
+      with:
+        limit-access-to-actor: false 
 
     - name: Publish to GitHub Releases
       uses: softprops/action-gh-release@v2.6.1
