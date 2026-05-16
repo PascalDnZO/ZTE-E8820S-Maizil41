@@ -113,10 +113,10 @@ jobs:
         ./scripts/ext-toolchain.sh --toolchain /opt/toolchain --overwrite-config --config ${{ inputs.target_arch }}
         make defconfig
         
-    - name: Debug via SSH (tmate)
-      uses: mxschmitt/action-tmate@v3
-      with:
-        limit-access-to-actor: false   
+    # - name: Debug via SSH (tmate)
+    #   uses: mxschmitt/action-tmate@v3
+    #   with:
+    #     limit-access-to-actor: false   
 
     - name: Download Packages
       working-directory: ./openwrt
@@ -125,12 +125,18 @@ jobs:
         find dl -size -1024c -exec ls -l {} \;
         find dl -size -1024c -exec rm -f {} \;
 
-    - name: Compile OpenWrt
+    # - name: Compile OpenWrt
+    #   working-directory: ./openwrt
+    #   run: |
+    #     echo -e "$(nproc) thread compile"
+    #     make -j$(nproc) || make -j1 V=s
+    #     rm -rf bin/targets/ramips/mt7621/packages
+
+    - name: Build ImageBuilder
       working-directory: ./openwrt
       run: |
-        echo -e "$(nproc) thread compile"
-        make -j$(nproc) || make -j1 V=s
-        rm -rf bin/targets/ramips/mt7621/packages
+        echo -e "$(nproc) thread compile imagebuilder"
+        make imagebuilder -j$(nproc) || make imagebuilder -j1 V=s
 
     - name: Extract Vermagic
       id: get_vermagic
@@ -152,10 +158,10 @@ jobs:
         echo "release_tag=${{ inputs.repo_branch }}-$(date +'%Y.%m.%d-%H%M')" >> $GITHUB_OUTPUT
         echo "release_name=OpenWrt ZTE E8820S ${{ inputs.repo_branch }} $(date +'%Y.%m.%d')" >> $GITHUB_OUTPUT
 
-    - name: Debug via SSH (tmate)
-      uses: mxschmitt/action-tmate@v3
-      with:
-        limit-access-to-actor: false 
+    # - name: Debug via SSH (tmate)
+    #   uses: mxschmitt/action-tmate@v3
+    #   with:
+    #     limit-access-to-actor: false 
 
     - name: Publish to GitHub Releases
       uses: softprops/action-gh-release@v2.6.1
@@ -164,13 +170,42 @@ jobs:
         name: ${{ steps.tag.outputs.release_name }}
         prerelease: ${{ inputs.is_prerelease }}
         make_latest: ${{ inputs.is_prerelease == false && 'true' || 'false'}}
-        files: openwrt/bin/targets/ramips/mt7621/*
+        files: |
+          openwrt/bin/targets/ramips/mt7621/openwrt-imagebuilder-*
         body: |
-          ## ZTE E8820S OpenWrt Firmware ${{ inputs.repo_branch }}
-          Automated OpenWrt firmware build for ZTE E8820S.
-          
+          ## OpenWrt ImageBuilder ${{ inputs.repo_branch }}
+    
+          Automated OpenWrt ImageBuilder build for ZTE E8820S.
+    
           Version: ${{ inputs.repo_branch }}
-          Vermagic: ${{ steps.get_vermagic.outputs.vermagic }}
+          Target: ${{ inputs.target_arch }}
+    
           *Compiled using pre-compiled OpenWrt toolchain*
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+
+
+
+
+
+
+
+
+    # - name: Publish to GitHub Releases
+    #   uses: softprops/action-gh-release@v2.6.1
+    #   with:
+    #     tag_name: ${{ steps.tag.outputs.release_tag }}
+    #     name: ${{ steps.tag.outputs.release_name }}
+    #     prerelease: ${{ inputs.is_prerelease }}
+    #     make_latest: ${{ inputs.is_prerelease == false && 'true' || 'false'}}
+    #     files: openwrt/bin/targets/ramips/mt7621/*
+    #     body: |
+    #       ## ZTE E8820S OpenWrt Firmware ${{ inputs.repo_branch }}
+    #       Automated OpenWrt firmware build for ZTE E8820S.
+          
+    #       Version: ${{ inputs.repo_branch }}
+    #       Vermagic: ${{ steps.get_vermagic.outputs.vermagic }}
+    #       *Compiled using pre-compiled OpenWrt toolchain*
+    #   env:
+    #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
