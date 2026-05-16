@@ -113,10 +113,10 @@ jobs:
         ./scripts/ext-toolchain.sh --toolchain /opt/toolchain --overwrite-config --config ${{ inputs.target_arch }}
         make defconfig
         
-    # - name: Debug via SSH (tmate)
-    #   uses: mxschmitt/action-tmate@v3
-    #   with:
-    #     limit-access-to-actor: false   
+    - name: Debug via SSH (tmate)
+      uses: mxschmitt/action-tmate@v3
+      with:
+        limit-access-to-actor: false   
 
     - name: Download Packages
       working-directory: ./openwrt
